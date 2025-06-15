@@ -320,8 +320,17 @@
             return;
           }
 
+          const apiKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....(생략)";
+
           const metaRes = await fetch(
-            `https://solana-gateway.moralis.io/token/mainnet/${ca}/metadata`
+            `https://solana-gateway.moralis.io/token/mainnet/${ca}/metadata`,
+            {
+              method: "GET",
+              headers: {
+                accept: "application/json",
+                "X-API-Key": apiKey,
+              },
+            }
           );
           const meta = await metaRes.json();
 
@@ -332,15 +341,24 @@
           }
 
         let price = null;
-        if (typeof Moralis !== "undefined" && Moralis.SolApi) {
-          if (!Moralis.Core.isStarted) {
-            await Moralis.start({ apiKey: "YOUR_MORALIS_API_KEY" });
-          }
-          try {
-            price = await Moralis.SolApi.token.getTokenPrice({ network: "mainnet", address: ca });
-          } catch (_) {
+        try {
+          const priceRes = await fetch(
+            `https://solana-gateway.moralis.io/token/mainnet/${ca}/price`,
+            {
+              method: "GET",
+              headers: {
+                accept: "application/json",
+                "X-API-Key": apiKey,
+              },
+            }
+          );
+          if (priceRes.ok) {
+            price = await priceRes.json();
+          } else {
             console.warn("Failed to fetch price data");
           }
+        } catch (_) {
+          console.warn("Failed to fetch price data");
         }
 
         const name = meta.name || meta.symbol;
