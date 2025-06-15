@@ -288,25 +288,48 @@
       return "$" + formatNumber(value);
     }
 
-    async function showResult(e) {
-      e.preventDefault();
-      const ca = document.querySelector('form input[type="text"]').value.trim();
+      async function showResult(e) {
+        e.preventDefault();
+        const ca = document.querySelector('form input[type="text"]').value.trim();
 
-      const errorDiv = document.getElementById("error-message");
-      errorDiv.textContent = "";
-      errorDiv.style.display = "none";
+        const errorDiv = document.getElementById("error-message");
+        errorDiv.textContent = "";
+        errorDiv.style.display = "none";
 
-      document.getElementById("result").style.display = "none";
+        document.getElementById("result").style.display = "none";
 
-      try {
-        const metaRes = await fetch(`https://solana-gateway.moralis.io/token/mainnet/${ca}/metadata`);
-        const meta = await metaRes.json();
+        try {
+          const validRes = await fetch(
+            `https://pro-api.solscan.io/v2.0/token/meta?address=${ca}`,
+            {
+              headers: {
+                token:
+                  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3NDk4NjAwMjIwMDUsImVtYWlsIjoid2F4amluaG8wMkBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3NDk4NjAwMjJ9.I1laMt2a0wIiMeQ0JFEDDWWqvwLQvnSjcS0mdvy-vM0",
+              },
+            }
+          );
 
-        if (!metaRes.ok) {
-          errorDiv.textContent = "Invalid contract address.";
-          errorDiv.style.display = "block";
-          return;
-        }
+          if (!validRes.ok) {
+            alert("올바른 CA를 입력하세요");
+            return;
+          }
+
+          const validData = await validRes.json();
+          if (!validData || validData.data == null) {
+            alert("올바른 CA를 입력하세요");
+            return;
+          }
+
+          const metaRes = await fetch(
+            `https://solana-gateway.moralis.io/token/mainnet/${ca}/metadata`
+          );
+          const meta = await metaRes.json();
+
+          if (!metaRes.ok) {
+            errorDiv.textContent = "Invalid contract address.";
+            errorDiv.style.display = "block";
+            return;
+          }
 
         let price = null;
         if (typeof Moralis !== "undefined" && Moralis.SolApi) {
