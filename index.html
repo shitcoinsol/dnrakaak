@@ -172,6 +172,7 @@
     <input type="text" placeholder="Enter CA (contract address)" required />
     <button type="submit">Search</button>
   </form>
+  <div id="error-message" style="color: red; margin-top: 10px; display: none;"></div>
 
   <div class="token-summary" id="result">
     <h2><img src="logo.png" alt="token" /> <strong>$TRUMP</strong> <span style="color: green;">$9.91</span></h2>
@@ -229,6 +230,7 @@
       document.getElementById("result").style.display = "none";
       document.getElementById("chart-section").style.display = "none";
       document.getElementById("data-section").style.display = "none";
+      document.getElementById("error-message").style.display = "none";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     </script>
@@ -259,29 +261,43 @@
     async function showResult(e) {
       e.preventDefault();
       const userInput = document.querySelector('form input[type="text"]').value.trim();
+      const errorEl = document.getElementById("error-message");
+      errorEl.style.display = "none";
+      errorEl.textContent = "";
+
+      const requestOptions = {
+        method: "get",
+        headers: {
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3NDk4NjAwMjIwMDUsImVtYWlsIjoid2F4amluaG8wMkBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3NDk4NjAwMjJ9.I1laMt2a0wIiMeQ0JFEDDWWqvwLQvnSjcS0mdvy-vM0"
+        }
+      };
 
       try {
-        const response = await fetch(`https://pro-api.solscan.io/v2.0/token/meta?address=${userInput}`, {
-          method: "get",
-          headers: {
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3NDk4NjAwMjIwMDUsImVtYWlsIjoid2F4amluaG8wMkBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3NDk4NjAwMjJ9.I1laMt2a0wIiMeQ0JFEDDWWqvwLQvnSjcS0mdvy-vM0"
-          }
-        });
+        const response = await fetch(`https://pro-api.solscan.io/v2.0/token/meta?address=${userInput}`, requestOptions);
         const data = await response.json();
+
+        if (!data || !data.data) {
+          errorEl.textContent = "Invalid contract address.";
+          errorEl.style.display = "block";
+          return;
+        }
+
         console.log('Token metadata:', data);
+        document.getElementById("result").style.display = "block";
+        document.getElementById("chart-section").style.display = "flex";
+        document.getElementById("data-section").style.display = "grid";
       } catch (err) {
         console.error('Failed to fetch token metadata', err);
+        errorEl.textContent = "Failed to fetch token metadata.";
+        errorEl.style.display = "block";
       }
-
-      document.getElementById("result").style.display = "block";
-      document.getElementById("chart-section").style.display = "flex";
-      document.getElementById("data-section").style.display = "grid";
     }
   
     function resetApp() {
       document.getElementById("result").style.display = "none";
       document.getElementById("chart-section").style.display = "none";
       document.getElementById("data-section").style.display = "none";
+      document.getElementById("error-message").style.display = "none";
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     </script>
