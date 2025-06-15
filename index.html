@@ -182,11 +182,16 @@
   <div id="error-message" class="error-message"></div>
 
   <div class="token-summary" id="result">
-    <h2><img src="logo.png" alt="token" /> <strong>$TRUMP</strong> <span style="color: green;">$9.91</span></h2>
-    <p>
-      Market Cap: $89.8M<br/>
-      Liquidity: $423K<br/>
-      Supply: 999M
+    <h2>
+      <img id="token-logo" src="logo.png" alt="token" />
+      <strong id="token-name">$TRUMP</strong>
+      <span id="token-price" style="color: green;">$9.91</span>
+    </h2>
+    <p id="token-data">
+      Market Cap: <span id="token-marketcap">$89.8M</span><br/>
+      Volume: <span id="token-volume">$0</span><br/>
+      Liquidity: <span id="token-liquidity">$423K</span><br/>
+      Supply: <span id="token-supply">999M</span>
     </p>
   </div>
 
@@ -256,6 +261,7 @@
     </div>
   </div>
 
+
   <div class="footer" style="margin-top: 60px;">
     powered by
     <a href="https://x.com/snifdotfun" target="_blank" rel="noopener noreferrer">snif.fun</a>
@@ -263,52 +269,95 @@
     <a href="https://believe.app" target="_blank" rel="noopener noreferrer">$SNIF</a>
   </div>
 
+  <script src="https://unpkg.com/moralis/dist/moralis.js"></script>
+
   <script>
+    function formatNumber(value) {
+      if (value === null || value === undefined) return "";
+      const units = ["", "K", "M", "B", "T"];
+      let i = 0;
+      while (value >= 1000 && i < units.length - 1) {
+        value /= 1000;
+        i++;
+      }
+      return value.toFixed(2).replace(/\.00$/, "") + units[i];
+    }
+
+    function formatCurrency(value) {
+      if (value === null || value === undefined) return "";
+      return "$" + formatNumber(value);
+    }
+
     async function showResult(e) {
       e.preventDefault();
-      const userInput = document.querySelector('form input[type="text"]').value.trim();
+      const ca = document.querySelector('form input[type="text"]').value.trim();
 
       const errorDiv = document.getElementById("error-message");
       errorDiv.textContent = "";
       errorDiv.style.display = "none";
 
       document.getElementById("result").style.display = "none";
-      document.getElementById("chart-section").style.display = "none";
-      document.getElementById("data-section").style.display = "none";
 
       try {
-        const response = await fetch(`https://pro-api.solscan.io/v2.0/token/meta?address=${userInput}`, {
-          method: "get",
-          headers: {
-            "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjcmVhdGVkQXQiOjE3NDk4NjAwMjIwMDUsImVtYWlsIjoid2F4amluaG8wMkBnbWFpbC5jb20iLCJhY3Rpb24iOiJ0b2tlbi1hcGkiLCJhcGlWZXJzaW9uIjoidjIiLCJpYXQiOjE3NDk4NjAwMjJ9.I1laMt2a0wIiMeQ0JFEDDWWqvwLQvnSjcS0mdvy-vM0"
-          }
-        });
-        const data = await response.json();
+        const metaRes = await fetch(`https://solana-gateway.moralis.io/token/mainnet/${ca}/metadata`);
+        const meta = await metaRes.json();
 
-        if (!data || data.data == null) {
+        if (!metaRes.ok) {
           errorDiv.textContent = "Invalid contract address.";
           errorDiv.style.display = "block";
           return;
         }
 
-        console.log('Token metadata:', data);
+        let price = null;
+        if (typeof Moralis !== "undefined" && Moralis.SolApi) {
+          if (!Moralis.Core.isStarted) {
+            await Moralis.start({ apiKey: "YOUR_MORALIS_API_KEY" });
+          }
+          try {
+            price = await Moralis.SolApi.token.getTokenPrice({ network: "mainnet", address: ca });
+          } catch (_) {
+            console.warn("Failed to fetch price data");
+          }
+        }
+
+        const name = meta.name || meta.symbol;
+        if (name) {
+          document.getElementById("token-name").textContent = name;
+        }
+        if (meta.logo) {
+          document.getElementById("token-logo").src = meta.logo;
+        }
+        if (price && price.usdPrice != null) {
+          document.getElementById("token-price").textContent = "$" + Number(price.usdPrice).toFixed(2);
+        }
+        if (price && price.marketCap != null) {
+          document.getElementById("token-marketcap").textContent = formatCurrency(price.marketCap);
+        }
+        if (price && price.usd24hVolume != null) {
+          document.getElementById("token-volume").textContent = formatCurrency(price.usd24hVolume);
+        }
+        if (price && price.liquidity != null) {
+          document.getElementById("token-liquidity").textContent = formatCurrency(price.liquidity);
+        }
+        if (meta.total_supply != null) {
+          document.getElementById("token-supply").textContent = formatNumber(meta.total_supply);
+        }
+
         document.getElementById("result").style.display = "block";
-        document.getElementById("chart-section").style.display = "flex";
-        document.getElementById("data-section").style.display = "grid";
       } catch (err) {
-        console.error('Failed to fetch token metadata', err);
-        errorDiv.textContent = "Failed to fetch token metadata.";
+        console.error("Failed to fetch token data", err);
+        errorDiv.textContent = "Failed to fetch token data.";
         errorDiv.style.display = "block";
       }
     }
-  
+
     function resetApp() {
       document.getElementById("result").style.display = "none";
       document.getElementById("chart-section").style.display = "none";
       document.getElementById("data-section").style.display = "none";
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
-    </script>
+  </script>
     
 
 </body>
