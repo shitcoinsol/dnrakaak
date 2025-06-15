@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>snif.fun - Meme Coin Trust Checker</title>
+  <style>
+    :root {
+      --main: #61c5ff;
+      --bg: #f5fafd;
+      --text: #333;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px 100px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    header img {
+      width: 60px;
+      height: 60px;
+      margin-right: 15px;
+    }
+
+    header h1 {
+      font-size: 36px;
+      color: var(--main);
+      font-weight: 700;
+    }
+
+    form {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 12px 16px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 12px 20px;
+      background: var(--main);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #4db8f0;
+    }
+
+    .token-summary {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      max-width: 700px;
+      width: 100%;
+      margin: 30px auto 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      display: none;
+    }
+
+    .token-summary h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .token-summary img {
+      width: 36px;
+      height: 36px;
+    }
+
+    .chart-section {
+      display: none;
+      background: #d9f1ff;
+      border-radius: 8px;
+      height: 240px;
+      width: 100%;
+      max-width: 700px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 500;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      max-width: 700px;
+      margin: 0 auto;
+      display: none;
+    }
+
+    .box {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px; min-height: 110px;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    .box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .footer {
+      position: static;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+    }
+
+    .footer a {
+      color: var(--main);
+      text-decoration: none;
+      margin: 0 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="logo.png" alt="logo" />
+    <h1 onclick="resetApp()" style="cursor: pointer;">snif.fun</h1>
+  </header>
+
+  <form onsubmit="showResult(event)">
+    <input type="text" placeholder="Enter CA (contract address)" required />
+    <button type="submit">Search</button>
+  </form>
+
+  <div class="token-summary" id="result">
+    <h2><img src="logo.png" alt="token" /> <strong>$TRUMP</strong> <span style="color: green;">$9.91</span></h2>
+    <p>
+      Market Cap: $89.8M<br/>
+      Liquidity: $423K<br/>
+      Supply: 999M
+    </p>
+  </div>
+
+  <div class="chart-section" id="chart-section" style="display: none; height: 400px;">
+    
+<div id="price-chart-widget-container" style="width: 100%; height: 400px; display: block;">
+    <script type="text/javascript">
+      (function() {
+        function loadWidget() {
+          if (typeof window.createMyWidget === 'function') {
+            window.createMyWidget('price-chart-widget-container', {
+              autoSize: true,
+              chainId: 'solana',
+              tokenAddress: '6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN',
+              showHoldersChart: true,
+              defaultInterval: '1D',
+              timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'Etc/UTC',
+              theme: 'moralis',
+              locale: 'en',
+              backgroundColor: '#071321',
+              gridColor: '#0d2035',
+              textColor: '#68738D',
+              candleUpColor: '#4CE666',
+              candleDownColor: '#E64C4C',
+              hideLeftToolbar: false,
+              hideTopToolbar: false,
+              hideBottomToolbar: false
+            });
+          } else {
+            console.error('createMyWidget function is not defined.');
+          }
+        }
+
+        if (!document.getElementById('moralis-chart-widget')) {
+          var script = document.createElement('script');
+          script.id = 'moralis-chart-widget';
+          script.src = 'https://moralis.com/static/embed/chart.js';
+          script.type = 'text/javascript';
+          script.async = true;
+          script.onload = loadWidget;
+          document.body.appendChild(script);
+        } else {
+          loadWidget();
+        }
+      })();
+    
+    function resetApp() {
+      document.getElementById("result").style.display = "none";
+      document.getElementById("chart-section").style.display = "none";
+      document.getElementById("data-section").style.display = "none";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    </script>
+    
+</div>
+
+  </div>
+
+  <div class="grid" id="data-section" style="display: none;">
+    <div class="box"><strong>Top Holders</strong>[ Pie Chart Placeholder ]</div>
+    <div class="box"><strong>Holder Change</strong>+83 in last hour</div>
+    <div class="box"><strong>Recent Buys / Sells</strong>• Buy - 0.9 SOL<br/>• Sell - 1.2 SOL</div>
+    <div class="box">
+      <strong>Buy/Sell Ratio</strong>64% / 36%<br/>
+      <strong>Volume Change</strong>+19%<br/>
+      <strong>Top Active Wallets</strong>[ 0x123..., 0x456... ]
+    </div>
+  </div>
+
+  <div class="footer" style="margin-top: 60px;">
+    powered by <a href="#" onclick="resetApp()">snif.fun</a> · 
+    <a href="#">Twitter</a> · 
+    <a href="#">$SNIF</a>
+  </div>
+
+  <script>
+    function showResult(e) {
+      e.preventDefault();
+      document.getElementById("result").style.display = "block";
+      document.getElementById("chart-section").style.display = "flex";
+      document.getElementById("data-section").style.display = "grid";
+    }
+  
+    function resetApp() {
+      document.getElementById("result").style.display = "none";
+      document.getElementById("chart-section").style.display = "none";
+      document.getElementById("data-section").style.display = "none";
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    </script>
+    
+
+</body>
+</html>
